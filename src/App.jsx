@@ -1,632 +1,611 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Heart,
-  Lock,
-  Clock3,
-  Music2,
-  Pause,
-  Gift,
-  Sparkles,
-  ImageIcon,
-  ChevronDown,
-  MailOpen,
-  Stars,
-  PartyPopper,
-} from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import "./App.css";
 
-const START_DATE = "2025-05-19T00:00:00";
-const PASSWORD = "sama";
-const SITE_NAME = "سما";
+const SITE_PASSWORD = "love";
 
-const storyCards = [
-  {
-    title: "وجودك فرق",
-    subtitle: "اضغطي علشان الرسالة",
-    message:
-      "مع نهاية شهر رمضان وبداية عيد الفطر، حبيت أقولك إن وجودك في حياتي فرق معايا أكتر مما تتخيلي. وجودك بقى جزء جميل من أيامي فعلًا.",
-  },
-  {
-    title: "ضحكتك",
-    subtitle: "فيها حاجة مختلفة",
-    message:
-      "كلامك البسيط، وضحكتك اللي بتيجي فجأة… بيقدروا يغيّروا يوم كامل ويخلّوه أخف وأجمل، وده شيء جميل أوي عندي.",
-  },
-  {
-    title: "مكانتك عندي",
-    subtitle: "رسالة صغيرة من قلبي",
-    message:
-      "حابب أقولك إنك أرق وأحسن وأجمل بنوته في عيني، ولو عملت عشانك أي حاجة فهي أقل من اللي إنتِ تستحقيه أكيد.",
-  },
-  {
-    title: "وعدي ليكي",
-    subtitle: "وهفضل عنده",
-    message:
-      "وبقدر المستطاع هحاول أسعدك وأفرحك، وأفضل أعملك حاجات تليق بمكانتك الحلوة في قلبي.",
-  },
-  {
-    title: "وجودك",
-    subtitle: "خلّى الأيام أحلى",
-    message:
-      "أيامي احلوت بصحبتك ووجودك، وخفة روحك طيبة على القلب بشكل مش عادي.",
-  },
-  {
-    title: "دعوة من قلبي",
-    subtitle: "أمنية ليكي",
-    message:
-      "ربنا يجبر بخاطرك ويسعدك يا رب، ويفضل الفرح قريب منك على طول، لأنك تستحقي كل حاجة حلوة.",
-  },
-];
-
-const galleryImages = [
-  "/profile.jpg/1.jpg",
-  "/profile.jpg/2.jpg",
-  "/profile.jpg/3.jpg",
-  "/profile.jpg/4.jpg",
-];
-
-const specialMoments = [
-  {
-    image: "/profile.jpg/1.jpg",
-    title: "لحظة مميزة",
-    text: "أجمل لحظة بينكم هنا",
-  },
-  {
-    image: "/profile.jpg/2.jpg",
-    title: "صورة حلوة",
-    text: "وصف بسيط للصورة",
-  },
-  {
-    image: "/profile.jpg/3.jpg",
-    title: "لحظة مميزة",
-    text: "أجمل لحظة بينكم هنا",
-  },
-  {
-    image: "/profile.jpg/4.jpg",
-    title: "لحظة مميزة",
-    text: "أجمل لحظة بينكم هنا",
-  },
-];
-
-function useCounter(startDate) {
-  const [now, setNow] = useState(new Date());
+function TypingText({ text, speed = 35, className = "" }) {
+  const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000 * 60);
-    return () => clearInterval(timer);
-  }, []);
+    let index = 0;
+    setDisplayed("");
 
-  return useMemo(() => {
-    const start = new Date(startDate);
-    const diff = now - start;
+    const interval = setInterval(() => {
+      index += 1;
+      setDisplayed(text.slice(0, index));
+      if (index >= text.length) clearInterval(interval);
+    }, speed);
 
-    const totalMinutes = Math.max(0, Math.floor(diff / (1000 * 60)));
-    const totalHours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
-    const totalDays = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    return () => clearInterval(interval);
+  }, [text, speed]);
 
-    return { totalDays, totalHours, totalMinutes };
-  }, [now, startDate]);
-}
-
-function FloatingHearts() {
-  const items = Array.from({ length: 22 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    size: 10 + Math.random() * 14,
-    duration: 9 + Math.random() * 8,
-    delay: Math.random() * 5,
-    x1: -8 + Math.random() * 16,
-    x2: -15 + Math.random() * 30,
-  }));
-
-  return (
-    <div className="floating-hearts" aria-hidden="true">
-      {items.map((item) => (
-        <motion.div
-          key={item.id}
-          className="floating-heart"
-          style={{ left: item.left }}
-          initial={{ y: 0, opacity: 0 }}
-          animate={{
-            y: -1000,
-            opacity: [0, 0.45, 0],
-            x: [0, item.x1, item.x2, 0],
-            rotate: [0, -6, 6, 0],
-          }}
-          transition={{
-            duration: item.duration,
-            repeat: Infinity,
-            delay: item.delay,
-            ease: "linear",
-          }}
-        >
-          <Heart size={item.size} />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function MusicButton({ shouldStart }) {
-  const audioRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    const startAudio = async () => {
-      if (!shouldStart || !audioRef.current || playing) return;
-
-      try {
-        audioRef.current.volume = 0.45;
-        await audioRef.current.play();
-        setPlaying(true);
-      } catch {
-        setPlaying(false);
-      }
-    };
-
-    startAudio();
-  }, [shouldStart, playing]);
-
-  const toggle = async () => {
-    if (!audioRef.current) return;
-
-    try {
-      if (playing) {
-        audioRef.current.pause();
-        setPlaying(false);
-      } else {
-        audioRef.current.volume = 0.45;
-        await audioRef.current.play();
-        setPlaying(true);
-      }
-    } catch {
-      setPlaying(false);
-    }
-  };
-
-  return (
-    <>
-      <audio ref={audioRef} loop preload="auto" src="/profile.jpg/love.mp3" />
-      <button className="music-btn" onClick={toggle} type="button">
-        {playing ? <Pause size={18} /> : <Music2 size={18} />}
-      </button>
-    </>
-  );
-}
-function SectionTitle({ icon: Icon, title, subtitle }) {
-  return (
-    <div className="section-title">
-      <div className="section-icon">
-        <Icon size={18} />
-      </div>
-      <h2>{title}</h2>
-      {subtitle ? <p>{subtitle}</p> : null}
-    </div>
-  );
-}
-
-function OpeningScreen({ onStart }) {
-  return (
-    <motion.div
-      className="opening-screen"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <motion.div
-        className="opening-heart-wrap"
-        animate={{ scale: [1, 1.06, 1], rotate: [0, -3, 3, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-      >
-        <Heart size={40} className="opening-heart" />
-      </motion.div>
-
-      <h1>هدية صغيرة لـ {SITE_NAME}</h1>
-      <p>
-        حاجة معمولة مخصوص علشان نهاية رمضان وبداية العيد تفضل ذكرى جميلة
-        ومختلفة بينكم
-      </p>
-
-      <button className="primary-btn" type="button" onClick={onStart}>
-        افتحي البداية
-      </button>
-    </motion.div>
-  );
-}
-
-function StoryCard({ item, index }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
-    >
-      <button
-        type="button"
-        className={`story-card ${open ? "active" : ""}`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <div className="story-card-head">
-          <div className="story-card-icon">
-            <Sparkles size={16} />
-          </div>
-
-          <div className="story-card-content">
-            <div className="story-card-top">
-              <h3>{item.title}</h3>
-              <span>{item.subtitle}</span>
-            </div>
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              className="story-card-body-wrap"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-            >
-              <div className="story-card-body">{item.message}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </button>
-    </motion.div>
-  );
-}
-
-function SecretMessage() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="glass-card">
-      <SectionTitle
-        icon={MailOpen}
-        title="رسالة مخفية"
-        subtitle="رسالة صغيرة مخصوص ليكي"
-      />
-
-      <div className="centered">
-        <button
-          className="primary-btn"
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? "إخفاء الرسالة" : "افتحي الرسالة"}
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="secret-box"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-          >
-            مهما أقول، هيفضل في كلام أكتر من اللي أقدر أكتبه… لكن يكفيني إنك
-            بقيتي حاجة جميلة ومميزة في قلبي، وكل سنة وإنتِ بخير يا سما ♡
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function SurpriseCard() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="glass-card">
-      <SectionTitle
-        icon={PartyPopper}
-        title="سوربرايز صغيرة"
-        subtitle="كارتة مخصوصة ليكي"
-      />
-
-      <div className="centered">
-        <button
-          className="primary-btn"
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? "إخفاء السوربرايز" : "افتحي السوربرايز"}
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="surprise-card"
-            initial={{ opacity: 0, scale: 0.97, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-          >
-            <div className="surprise-top">
-              <Gift size={22} />
-              <span>هدية مخصوصة</span>
-            </div>
-            <h3>كل سنة وإنتِ أجمل حاجة حلوة</h3>
-            <p>
-              وكنت عند اتفاقي، فعدّيتك واديني جبتها لكِ بتاريخ ميلادك المحبب
-              لقلبي… وآه يا ستي تصرفيها عادي وأجيب لك غيرها 😂
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  return <p className={className}>{displayed}</p>;
 }
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-  const [enteredIntro, setEnteredIntro] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
-  const [input, setInput] = useState("");
+  const [enteredPassword, setEnteredPassword] = useState("");
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [error, setError] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [showLoader, setShowLoader] = useState(true);
+  const [counter, setCounter] = useState({
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+  });
 
-  const counter = useCounter(START_DATE);
+  const content = useMemo(
+    () => ({
+      heroName: "بوز االبطه ❤️",
+      heroSub: "العُمر ❤️ روحي ونصي التاني",
+      heroText:
+        "بحبك قد الدنيا وكل يوم بحبك أكتر من اللي قبله، وإنتي الأمان والفرحة اللي نفسي تفضل معايا طول العمر ❤️",
+      meetTitle: "أول مرة اتقابلنا ❤️",
+      meetDate: "6 / 6 / 2023",
+      timerTitle: "بداية عمري معاكي ❤️",
+      timerText:
+        "بفضلك فعلًا طول ما احنا مع بعض الدنيا بقت أحلى، وكل يوم بيعدي بيأكدلي إنك أجمل حاجة حصلتلي ❤️",
+      longMessage:
+        "إنتي مش مجرد شخص بحبه، إنتي المكان اللي قلبي بيرتاح فيه، والضحكة اللي بتخليني أنسى الدنيا، والأمان اللي عمري ما لقيته في أي حد غيرك. وكل يوم بيعدي عليا معاكي بحس إني محظوظ بيكي أكتر وأكتر ❤️",
+      cuteText:
+        "يا أجمل وألطف وأحن حد في الدنيا كلها… الموقع ده معمول ليكي إنتي وبس 💖",
+      footerText: "بحبك ❤️🌷",
+    }),
+    []
+  );
+
+  const memoryCards = useMemo(
+    () => [
+      {
+        id: 1,
+        title: "من أول يوم",
+        image: "/1.jpg",
+        date: "6 / 6 / 2023",
+        text: "اول يوم قعدنا معي بعض فيه كان اجمل يوم في حياتي واحسن حاجة حصلتلي طول عمري ❤️✨ 💖",
+      },
+      {
+        id: 2,
+        title: "روحي",
+        image: "/2.jpg",
+        date: "ذكرى مميزة",
+        text: "اجمل بوز بطه في الدنيا كلها 😂😍❤️❤️❤️💞",
+      },
+      {
+        id: 3,
+        title: "العُمر ❤️",
+        image: "/3.jpg",
+        date: "أجمل لحظة",
+        text: "دنيتي الحلوه ورزقي في الدنيا ❤️👑❤️",
+      },
+      {
+        id: 4,
+        title: "كل سنه وانتي عيد",
+        image: "/4.jpg",
+        date: "أحلى يوم",
+        text: "كل يوم بحسد نفسي ان القمر دا بتاعي انا عشان مفيش جمال كدا بجد 🌚😘❤️   ❤️",
+      },
+    ],
+    []
+  );
+
+  const timelineItems = useMemo(
+    () => [
+      {
+        title: "أول مرة اتقابلنا",
+        date: " 6 / 6 / 2023",
+        text: "اليوم اللي بدأت فيه أجمل حكاية بينا.",
+      },
+      {
+        title: "أول ذكرى حلوة",
+        date: "بعدها بفترة",
+        text: "أول صورة وأول لحظة اتحفرت في قلبي.",
+      },
+      {
+        title: "بداية الحكاية",
+        date: "ومكملين",
+        text: "كل يوم بيأكدلي إنك أحلى قدر في حياتي.",
+      },
+      {
+        title: "حب أكتر",
+        date: "كل يوم",
+        text: "وكل يوم بحبك أكتر من اللي قبله.",
+      },
+    ],
+    []
+  );
+
+  const cuteFacts = useMemo(
+    () => [
+      { title: "أجمل ضحكة", value: "100%" },
+      { title: "مستوى الحب", value: "∞" },
+      { title: "الفرحة", value: "دايمًا" },
+      { title: "الأمان", value: "معاكي" },
+    ],
+    []
+  );
+
+  const reasons = useMemo(
+    () => ["ضحكتك", "طيبتك", "وجودك", "حنانك", "صوتك", "قلبك"],
+    []
+  );
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(t);
+    const timeout = setTimeout(() => setShowLoader(false), 2200);
+    return () => clearTimeout(timeout);
   }, []);
 
-  const handleLogin = (e) => {
+  useEffect(() => {
+    const startDate = new Date("2025-08-29T00:00:00");
+
+    const updateCounter = () => {
+      const now = new Date();
+      const diff = Math.max(0, now - startDate);
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      setCounter({
+        days: String(days).padStart(2, "0"),
+        hours: String(hours).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
+        seconds: String(seconds).padStart(2, "0"),
+      });
+    };
+
+    updateCounter();
+    const interval = setInterval(updateCounter, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!isUnlocked) return;
+
+    const audio = document.getElementById("loveAudio");
+    if (!audio) return;
+
+    const playAudio = async () => {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    };
+
+    playAudio();
+  }, [isUnlocked]);
+
+  const handleUnlock = async (e) => {
     e.preventDefault();
 
-    if (input.trim().toLowerCase() === PASSWORD.toLowerCase()) {
-      setAuthorized(true);
+    if (enteredPassword === SITE_PASSWORD) {
+      setIsUnlocked(true);
       setError("");
+
+      setTimeout(async () => {
+        const audio = document.getElementById("loveAudio");
+        if (!audio) return;
+        try {
+          await audio.play();
+          setIsPlaying(true);
+        } catch {
+          setIsPlaying(false);
+        }
+      }, 250);
     } else {
-      setError("كلمة السر مش صحيحة 💜");
+      setError("الباسورد غلط يا قلبي");
     }
   };
 
-  const scrollToContent = () => {
-    const el = document.getElementById("content");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+  const toggleMusic = async () => {
+    const audio = document.getElementById("loveAudio");
+    if (!audio) return;
+
+    if (audio.paused) {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
   };
 
+  if (showLoader) {
+    return (
+      <div className="loader-page" dir="rtl">
+        <div className="loader-hearts">
+          <span>❤</span>
+          <span>❤</span>
+          <span>❤</span>
+        </div>
+        <div className="loader-circle"></div>
+        <h1>جارِ تجهيز أجمل مفاجأة ليكي 💖</h1>
+      </div>
+    );
+  }
+
+  if (!isUnlocked) {
+    return (
+      <div className="password-page" dir="rtl">
+        <audio id="loveAudio" loop preload="auto">
+          <source src="/love.mp3" type="audio/mpeg" />
+        </audio>
+
+        <div className="bg-orb orb-1"></div>
+        <div className="bg-orb orb-2"></div>
+        <div className="bg-orb orb-3"></div>
+
+        <div className="floating-hearts" aria-hidden="true">
+          <span>❤</span>
+          <span>❤</span>
+          <span>❤</span>
+          <span>❤</span>
+          <span>❤</span>
+          <span>❤</span>
+        </div>
+
+        <div className="password-card glass">
+          <div className="password-top-image">
+            <img src="/profile.jpg" alt="حبيبتي" />
+            <div className="password-image-overlay"></div>
+          </div>
+
+          <div className="lock-icon">🔐</div>
+          <div className="cute-badge">💖 خاص بيكي</div>
+
+          <h1>اكتبي كلمه السر يا حلوتي ويا جميلتي</h1>
+
+          <p className="password-subtext">
+            الموقع ده معمول مخصوص عشانك، ومش هيفتح غير لما تكتبي كلمة السر ❤️
+          </p>
+
+          <form onSubmit={handleUnlock} className="password-form">
+            <input
+              type="password"
+              placeholder="اكتبي كلمة السر هنا"
+              value={enteredPassword}
+              onChange={(e) => setEnteredPassword(e.target.value)}
+            />
+            <button type="submit">دخول للموقع ❤️</button>
+          </form>
+
+          {error && <div className="error-text">{error}</div>}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-     <MusicButton shouldStart={enteredIntro || authorized} />
+    <div className="page" dir="rtl">
+      <audio id="loveAudio" loop preload="auto">
+        <source src="/love.mp3" type="audio/mpeg" />
+      </audio>
 
-      <div className="app-shell">
-        <div className="bg-layer" />
-        <div className="blur-orb orb-1" />
-        <div className="blur-orb orb-2" />
-        <FloatingHearts />
+      <div className="bg-orb orb-1"></div>
+      <div className="bg-orb orb-2"></div>
+      <div className="bg-orb orb-3"></div>
 
-        <AnimatePresence>
-          {loading && (
-            <motion.div
-              className="loading-screen"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="loading-box">
-                <motion.div
-                  className="loading-heart-wrap"
-                  animate={{ scale: [1, 1.06, 1], rotate: [0, -4, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.8 }}
-                >
-                  <Heart size={38} className="loading-heart" />
-                </motion.div>
+      <div className="floating-hearts" aria-hidden="true">
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+        <span>❤</span>
+      </div>
 
-                <h1>هدية صغيرة لـ {SITE_NAME}</h1>
-                <p>كل حاجة هنا معمولالك من القلب</p>
+      <main className="container">
+        <section className="hero-banner glass">
+          <div className="hero-banner-text">
+            <span className="small-badge">✨ نسخة كبيرة جدًا</span>
+            <h1>
+              {content.heroName}
+              <span>{content.heroSub}</span>
+            </h1>
+            <TypingText text={content.cuteText} className="typing-line" />
+            <p>{content.heroText}</p>
+
+            <div className="top-actions">
+              <button className="btn btn-primary" onClick={toggleMusic}>
+                {isPlaying ? "إيقاف الأغنية" : "تشغيل الأغنية"}
+              </button>
+
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  document
+                    .getElementById("counterSection")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                انزلي تحت
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-banner-image">
+            <img src="/profile.jpg" alt="منة" />
+            <div className="hero-banner-overlay"></div>
+          </div>
+        </section>
+
+        <section className="stats-grid">
+          <div className="stat-card glass">
+            <strong>{counter.days}</strong>
+            <span>يوم حب</span>
+          </div>
+          <div className="stat-card glass cute-counter-card">
+            <div className="pulse-ring"></div>
+            <strong>{counter.hours}</strong>
+            <span>ساعة قرب</span>
+          </div>
+          <div className="stat-card glass">
+            <strong>{memoryCards.length}</strong>
+            <span>ذكريات</span>
+          </div>
+          <div className="stat-card glass">
+            <strong>∞</strong>
+            <span>حب</span>
+          </div>
+        </section>
+
+        <section className="cute-facts-grid">
+          {cuteFacts.map((item, index) => (
+            <div className="cute-fact-card glass" key={index}>
+              <h4>{item.title}</h4>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </section>
+
+        <section className="full-cover-section glass">
+          <div className="full-cover-image">
+            <img src="/profile.jpg" alt="منة" />
+            <div className="full-cover-overlay"></div>
+          </div>
+
+          <div className="full-cover-content">
+            <div className="scene-pill">{content.meetTitle}</div>
+            <div className="scene-date">{content.meetDate}</div>
+            <h2>{content.heroName}</h2>
+            <h3>{content.heroSub}</h3>
+            <p>{content.heroText}</p>
+          </div>
+        </section>
+
+        <section className="huge-counter-section glass" id="counterSection">
+          <span className="small-badge">⏳ عداد الحب</span>
+          <h2>{content.timerTitle}</h2>
+          <p>{content.timerText}</p>
+
+          <div className="huge-counter-grid">
+            <div className="huge-counter-box animated-counter">
+              <strong>{counter.days}</strong>
+              <span>يوم</span>
+            </div>
+            <div className="huge-counter-box animated-counter">
+              <strong>{counter.hours}</strong>
+              <span>ساعة</span>
+            </div>
+            <div className="huge-counter-box animated-counter">
+              <strong>{counter.minutes}</strong>
+              <span>دقيقة</span>
+            </div>
+            <div className="huge-counter-box animated-counter">
+              <strong>{counter.seconds}</strong>
+              <span>ثانية</span>
+            </div>
+          </div>
+
+          <div className="music-mini-bar giant-music-bar">
+            <div className="music-mini-left">
+              <div className={`disc ${isPlaying ? "spin" : ""}`}>🎵</div>
+              <div>
+                <strong>أغنيتنا</strong>
+                <small>هتشتغل لو المتصفح سمح</small>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
 
-        {!loading && !enteredIntro ? (
-          <OpeningScreen onStart={() => setEnteredIntro(true)} />
-        ) : (
-          <main className="page">
-            {!authorized ? (
-              <div className="login-wrap">
-                <motion.div
-                  className="glass-card login-card"
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="login-avatar">
-                    <img src="/profile.jpg/profile.jpg" alt="سما" />
-                  </div>
+            <button className="mini-play-btn" onClick={toggleMusic}>
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+          </div>
+        </section>
 
-                  <div className="login-lock">
-                    <Lock size={22} />
-                  </div>
+        <section className="wide-message glass">
+          <span className="small-badge">💌 رسالة كبيرة ليكي</span>
+          <h2>كل الكلام ده ليكي</h2>
+          <p>{content.longMessage}</p>
+        </section>
 
-                  <h1 className="login-title">جاهزة؟ 🤍</h1>
-                  <p className="login-subtitle">
-                    لو إنتِ يا صاحبة أجمل ضحكة، اكتبي الباسورد
-                  </p>
+        <section className="love-columns">
+          <div className="love-column-card glass">
+            <h3>حاجات بحبها فيكي</h3>
+            <ul>
+              {reasons.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
 
-                  <form className="login-form" onSubmit={handleLogin}>
-                    <input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="اكتبي الباسورد"
-                    />
+          <div className="love-column-card glass">
+            <h3>أنا لما بكون معاكي</h3>
+            <ul>
+              <li>مرتاح</li>
+              <li>مبسوط</li>
+              <li>مطمّن</li>
+              <li>بحب الدنيا</li>
+              <li>بضحك من قلبي</li>
+              <li>حاسس بالأمان</li>
+            </ul>
+          </div>
+        </section>
 
-                    {error ? <p className="error-text">{error}</p> : null}
+        <section className="timeline-section glass">
+          <div className="section-head">
+            <h3>Timeline الحكاية</h3>
+            <p>ترتيب بسيط ولطيف للحظات المهمة</p>
+          </div>
 
-                    <button className="primary-btn full" type="submit">
-                      يلا نبدأ
-                    </button>
-                  </form>
-                </motion.div>
-              </div>
-            ) : (
-              <div className="content-stack">
-                <motion.section
-                  className="glass-card hero-card"
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="hero-overlay" />
-                  <div className="hero-content">
-                    <div className="hero-image-wrap">
-                      <div className="hero-image-glow" />
-                      <img
-                        src="/profile.jpg"
-                        alt="سما"
-                        className="hero-image"
-                      />
-                    </div>
-
-                    <div className="hero-badge">
-                      <Stars size={15} />
-                      <span>لأغلى حد في قلبي</span>
-                    </div>
-
-                    <h1>{SITE_NAME}</h1>
-                    <p>
-                      مع نهاية رمضان وبداية العيد، كان لازم تبقى النهاية مختلفة…
-                      ويبقى ليكي حاجة معمولة مخصوص علشانك.
-                    </p>
-
-                    <button
-                      className="primary-btn"
-                      type="button"
-                      onClick={scrollToContent}
-                    >
-                      افتحي الهدية
-                      <ChevronDown size={16} />
-                    </button>
-                  </div>
-                </motion.section>
-
-                <div id="content" className="content-stack">
-                  <div className="glass-card">
-                    <SectionTitle
-                      icon={Clock3}
-                      title="من أول قرب بينكم"
-                      subtitle="من 19 / 05 / 2025 لحد دلوقتي"
-                    />
-
-                    <div className="counter-box">
-                      <div className="counter-label">عدّى</div>
-                      <div className="counter-number">{counter.totalDays}</div>
-                      <div className="counter-unit">يوم</div>
-                    </div>
-
-                    <div className="mini-stats">
-                      <div className="mini-stat">
-                        <strong>{counter.totalHours}</strong>
-                        <span>ساعة</span>
-                      </div>
-                      <div className="mini-stat">
-                        <strong>{counter.totalMinutes}</strong>
-                        <span>دقيقة</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="glass-card">
-                    <SectionTitle
-                      icon={Gift}
-                      title="رسالة العيد"
-                      subtitle="كلام من القلب لنهاية رمضان وبداية عيد الفطر"
-                    />
-
-                    <div className="message-text">
-                      <p>
-                        مع نهاية شهر رمضان وبداية عيد الفطر، حبيت أقولك إن
-                        وجودك في حياتي فرق معايا أكتر مما تتخيلي. كلامك البسيط،
-                        وضحكتك اللي بتيجي فجأة… بيقدروا يغيّروا يوم كامل
-                        ويخلّوه أخف وأجمل.
-                      </p>
-
-                      <p>
-                        حابب اقولك انك ارق واحسن واجمل بنوته ف عيني، ولو عملت
-                        عشانك أي حاجة فهي أقل من اللي إنتِ تستحقيه أكيد.
-                      </p>
-
-                      <p>
-                        وبقدر المستطاع هحاول اسعدك و افرحك، أيامي احلوت بصحبتك و
-                        وجودك، خفيفة ع القلب و روحك طيبة.
-                      </p>
-
-                      <p>ربنا يجبر بخاطرك و يسعدك يارب.</p>
-
-                      <p>
-                        وعدتك ان رمضان دا هيكون مميز و هحاول بقدر الإمكان افرحك
-                        فيه، وزي ما ابتدي بحاجة تفرحك و متعملتش لحد قبلك، ف لازم
-                        نهايته تكون كريتف برضه. كل عام وانت بخير يا كل الخير ♡
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="glass-card">
-                    <SectionTitle
-                      icon={Sparkles}
-                      title="كروت مخصوصة"
-                      subtitle="كل كارت فيه رسالة، اضغطي عليه"
-                    />
-
-                    <div className="cards-grid">
-                      {storyCards.map((item, index) => (
-                        <StoryCard key={item.title} item={item} index={index} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <SurpriseCard />
-
-                  <div className="glass-card">
-                    <SectionTitle
-                      icon={ImageIcon}
-                      title="ذكرياتكم"
-                      subtitle="صوركم الحقيقية هنا"
-                    />
-
-                    <div className="gallery-grid">
-                      {galleryImages.map((src, index) => (
-                        <motion.div
-                          key={src}
-                          className={`gallery-item ${
-                            index === 0 ? "gallery-wide" : ""
-                          }`}
-                          initial={{ opacity: 0, y: 8 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.04 }}
-                        >
-                          <img src={src} alt={`memory-${index + 1}`} />
-                          <div className="gallery-overlay" />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <SecretMessage />
-
-                  <div className="glass-card footer-card">
-                    <div className="footer-gift">
-                      <Gift size={22} />
-                    </div>
-                    <h2>كل عام وإنتِ بخير يا سما</h2>
-                    <p>
-                      ويا رب أقدر دايمًا أفرحك، وأفضل أعملك حاجات تليق بمكانتك
-                      الحلوة في قلبي.
-                    </p>
-                    <button className="primary-btn" type="button">
-                      عيد سعيد يا كل الخير ♡
-                    </button>
-                  </div>
+          <div className="timeline-list">
+            {timelineItems.map((item, index) => (
+              <div className="timeline-item" key={index}>
+                <div className="timeline-dot"></div>
+                <div className="timeline-content">
+                  <small>{item.date}</small>
+                  <h4>{item.title}</h4>
+                  <p>{item.text}</p>
                 </div>
               </div>
-            )}
-          </main>
-        )}
-      </div>
-    </>
+            ))}
+          </div>
+        </section>
+
+        <section className="reels-section glass">
+          <div className="section-head slider-head">
+            <div>
+              <h3>الكروت المتحركة</h3>
+              <p>كل صورة تحتها النص بتاعها بشكل سلايدر متحرك</p>
+            </div>
+
+            <div className="slider-buttons">
+              <button
+                className="slider-btn"
+                onClick={() => {
+                  const slider = document.getElementById("cardsSlider");
+                  slider?.scrollBy({ left: 360, behavior: "smooth" });
+                }}
+              >
+                ←
+              </button>
+              <button
+                className="slider-btn"
+                onClick={() => {
+                  const slider = document.getElementById("cardsSlider");
+                  slider?.scrollBy({ left: -360, behavior: "smooth" });
+                }}
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          <div className="cards-slider" id="cardsSlider">
+            {memoryCards.map((card, index) => (
+              <button
+                key={card.id}
+                className="animated-text-card slider-card"
+                onClick={() => setSelectedCard(card)}
+                style={{ animationDelay: `${index * 0.08}s` }}
+              >
+                <div className="animated-card-image">
+                  <img src={card.image} alt={card.title} />
+                </div>
+
+                <div className="animated-card-body">
+                  <small>{card.date}</small>
+                  <h4>{card.title}</h4>
+                  <p>{card.text}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="big-quotes-section glass">
+          <div className="quote-box">
+            “من أول يوم قابلتك… قلبي عرف إنك نصه التاني 💖”
+          </div>
+          <div className="quote-box">
+            “إنتي مش بس خطيبتي، إنتي صاحبة قلبي وأفضل صديقة لي 💞”
+          </div>
+          <div className="quote-box">
+            “بحبك قد الدنيا وكل يوم بحبك أكتر من اللي قبله ❤️”
+          </div>
+        </section>
+
+        <section className="gallery-grid-section glass">
+          <div className="section-head">
+            <h3>جاليري أكبر</h3>
+            <p>صور أكتر بشكل أنضف وأوسع</p>
+          </div>
+
+          <div className="big-gallery-grid">
+            {memoryCards.map((item) => (
+              <button
+                key={item.id}
+                className="big-gallery-card"
+                onClick={() => setSelectedCard(item)}
+              >
+                <img src={item.image} alt={item.title} />
+                <div className="big-gallery-overlay">
+                  <h4>{item.title}</h4>
+                  <p>{item.text}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="extra-love-section glass">
+          <div className="extra-love-card glass">
+            <h3>وجودك فرق</h3>
+            <p>خلّى كل حاجة في حياتي أخف وأجمل وأهدى ❤️</p>
+          </div>
+          <div className="extra-love-card glass">
+            <h3>قلبي مطمّن</h3>
+            <p>لأنك موجودة فيه ومفيش مكان لحد غيرك 💖</p>
+          </div>
+          <div className="extra-love-card glass">
+            <h3>أجمل قدر</h3>
+            <p>إنتي أحلى صدفة وأحلى نصيب وأحلى هدية من ربنا 🌷</p>
+          </div>
+        </section>
+
+        <section className="final-cute-section glass">
+          <h2>وفي الآخر…</h2>
+          <p>إنتي أجمل حاجة حصلتلي، وأحلى قصة أنا عايشها ❤️</p>
+        </section>
+
+        <button
+          className="back-top"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          ↑
+        </button>
+      </main>
+
+      {selectedCard && (
+        <div className="modal" onClick={() => setSelectedCard(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setSelectedCard(null)}>
+              ×
+            </button>
+
+            <div className="modal-image">
+              <img src={selectedCard.image} alt={selectedCard.title} />
+            </div>
+
+            <div className="modal-content">
+              <span className="modal-chip">💌 ذكرى مختارة</span>
+              <small>{selectedCard.date || "ذكرى جميلة"}</small>
+              <h3>{selectedCard.title}</h3>
+              <p>{selectedCard.text}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
