@@ -38,7 +38,7 @@ export default function App() {
 
   const content = useMemo(
     () => ({
-      heroName: "sama ❤️",
+      heroName: "mena ❤️",
       heroSub: "العُمر ❤️ روحي ونصي التاني",
       heroText:
         "بحبك قد الدنيا وكل يوم بحبك أكتر من اللي قبله، وإنتي الأمان والفرحة اللي نفسي تفضل معايا طول العمر ❤️",
@@ -101,7 +101,7 @@ export default function App() {
     () => [
       {
         title: "أول مرة اتقابلنا",
-        date: "2025-8-29",
+        date: "22-2-2003",
         text: "اليوم اللي بدأت فيه أجمل حكاية بينا.",
       },
       {
@@ -262,7 +262,7 @@ export default function App() {
 
         <div className="password-card glass">
           <div className="password-top-image">
-            <img src="/profile.jpg" alt="sama" />
+            <img src="/profile.jpg" alt="mena" />
             <div className="password-image-overlay"></div>
           </div>
 
@@ -342,7 +342,7 @@ export default function App() {
           </div>
 
           <div className="hero-banner-image">
-            <img src="/profile.jpg" alt="منة" />
+            <img src="/profile.jpg" alt="mena" />
             <div className="hero-banner-overlay"></div>
           </div>
         </section>
