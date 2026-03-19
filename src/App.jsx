@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
-const SITE_PASSWORD = "sama";
+const SITE_PASSWORD = "22-2-2003";
 
 function TypingText({ text, speed = 35, className = "" }) {
   const [displayed, setDisplayed] = useState("");
